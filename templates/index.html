@@ -538,7 +538,7 @@
             <div id="popup-phone" class="info-popup"><div class="popup-close" onclick="closePopup('phone')">[ CLOSE ]</div><div class="popup-content" id="content-phone"></div></div>
             <span class="mono-micro">03 // PHONE TRACKER</span>
             <div style="display: flex; gap: 4px;">
-              <input id="phone-input" type="text" placeholder="Enter phone..." style="flex-grow: 1; background: var(--bg-base); border: 1px solid var(--border-color); color: var(--fg-white); padding: 8px 12px; font-family: var(--font-mono); font-size: var(--text-small); outline: none;">
+              <input id="phone-input" type="text" placeholder="Enter phone (E.G: +1...)" style="flex-grow: 1; background: var(--bg-base); border: 1px solid var(--border-color); color: var(--fg-white); padding: 8px 12px; font-family: var(--font-mono); font-size: var(--text-small); outline: none;">
               <button onclick="trackPhone()" style="background: var(--bg-base); border: 1px solid var(--border-color); color: var(--fg-white); padding: 8px 12px; font-family: var(--font-mono); font-size: var(--text-small); cursor: pointer;">GO</button>
             </div>
           </div>
@@ -887,6 +887,7 @@
             const ip = document.getElementById('ip-input').value;
             if (!ip) return;
             logToTelemetry("IP_TRACK:INIT", ip);
+            showPopup('ip', {"Status": "Initializing, Please Wait..."});
             try {
                 const res = await fetch('/api/ip', {
                     method: 'POST',
@@ -902,6 +903,7 @@
 
         async function myIP() {
             logToTelemetry("MY_IP:INIT", "Executing");
+            showPopup('myip', {"Status": "Initializing, Please Wait..."});
             try {
                 const res = await fetch('/api/myip', { method: 'POST' });
                 const data = await res.json();
@@ -915,6 +917,7 @@
             const phone = document.getElementById('phone-input').value;
             if (!phone) return;
             logToTelemetry("PHONE:INIT", phone);
+            showPopup('phone', {"Status": "Initializing, Please Wait..."});
             try {
                 const res = await fetch('/api/phone', {
                     method: 'POST',
