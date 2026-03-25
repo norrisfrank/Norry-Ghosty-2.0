@@ -1,0 +1,885 @@
+<html lang="en" vid="0"><head vid="1">
+    <meta charset="UTF-8" vid="2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" vid="3">
+    <title vid="4">NORRY GHOSTY // OSINT INTELLIGENCE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" vid="5">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" vid="6">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;400;700;800&amp;family=Inter:wght@300;400;600&amp;display=swap" rel="stylesheet" vid="7">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" vid="8"></script>
+
+    <style vid="9">
+        :root {
+            --bg-base: #020202;
+            --bg-panel: #060606;
+            --fg-white: #ffffff;
+            --fg-muted: #888888;
+            --fg-dim: #333333;
+            --border-color: rgba(255, 255, 255, 0.15);
+            
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-sans: 'Inter', sans-serif;
+            
+            --text-micro: 9px;
+            --text-small: 11px;
+            --text-base: 13px;
+            --text-large: 24px;
+            --text-display: 48px;
+            
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 32px;
+            --spacing-xl: 64px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--fg-white);
+            font-family: var(--font-mono);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 320px minmax(0, 1fr);
+            grid-template-rows: minmax(0, 1fr);
+            user-select: none;
+        }
+
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(circle at center, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        
+        body::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.2) 51%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0.3;
+        }
+
+        
+        .mono-micro {
+            font-size: var(--text-micro);
+            color: var(--fg-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+        
+        .mono-value {
+            font-size: var(--text-base);
+            color: var(--fg-white);
+            font-weight: 400;
+            letter-spacing: 0.05em;
+        }
+
+        .sans-display {
+            font-family: var(--font-sans);
+            font-size: var(--text-display);
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            line-height: 1;
+        }
+
+        .glitch-text {
+            position: relative;
+            display: inline-block;
+        }
+
+        .blink {
+            animation: blinker 1s linear infinite;
+        }
+        @keyframes blinker { 50% { opacity: 0; } }
+
+        
+        #telemetry-panel {
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border-color);
+            padding: var(--spacing-lg);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+            z-index: 10;
+            position: relative;
+            overflow: hidden;
+        }
+
+        
+        #telemetry-panel::-webkit-scrollbar { display: none; }
+        #telemetry-panel { -ms-overflow-style: none; scrollbar-width: none; }
+
+        
+        .logo-container {
+            width: 60px;
+            height: 60px;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .logo-svg {
+            width: 100%;
+            height: 100%;
+            stroke: var(--fg-white);
+            stroke-width: 4;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        
+        .module {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            position: relative;
+        }
+
+        .module::before {
+            content: '';
+            position: absolute;
+            left: -32px;
+            top: 4px;
+            width: 4px;
+            height: 4px;
+            background: var(--fg-dim);
+        }
+
+        .module.active::before {
+            background: var(--fg-white);
+            box-shadow: 0 0 8px rgba(255,255,255,0.8);
+        }
+
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: var(--spacing-xs);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: var(--text-small);
+        }
+
+        .data-row .label { color: var(--fg-muted); }
+        .data-row .val { color: var(--fg-white); text-align: right; }
+
+        
+        .matrix-bar {
+            font-family: monospace; 
+            font-size: 10px;
+            color: var(--fg-white);
+            letter-spacing: 1px;
+            white-space: pre;
+        }
+
+        
+        #arena {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #080808 0%, var(--bg-base) 100%);
+        }
+
+        #webgl-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+        }
+
+        
+        .arena-overlay {
+            position: absolute;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .crosshair-center {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+        }
+        
+        .crosshair-center::before, .crosshair-center::after {
+            content: ''; position: absolute; background: rgba(255,255,255,0.2);
+        }
+        .crosshair-center::before { top: 50%; left: 0; width: 100%; height: 1px; }
+        .crosshair-center::after { left: 50%; top: 0; height: 100%; width: 1px; }
+
+        .corner-marks {
+            width: 100%; height: 100%; top:0; left:0;
+        }
+        .corner {
+            position: absolute;
+            width: 20px; height: 20px;
+            border: 1px solid var(--fg-dim);
+        }
+        .corner.tl { top: 20px; left: 20px; border-right: none; border-bottom: none; }
+        .corner.tr { top: 20px; right: 20px; border-left: none; border-bottom: none; }
+        .corner.bl { bottom: 20px; left: 20px; border-right: none; border-top: none; }
+        .corner.br { bottom: 20px; right: 20px; border-left: none; border-top: none; }
+
+        .target-coords {
+            top: 40px;
+            right: 40px;
+            text-align: right;
+        }
+
+        .sys-status {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: var(--spacing-lg);
+            border: 1px solid var(--border-color);
+            padding: var(--spacing-xs) var(--spacing-md);
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        
+        .log-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            opacity: 0.7;
+            max-height: 140px;
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+        }
+        .log-list li {
+            font-size: var(--text-micro);
+            display: flex;
+            gap: 8px;
+        }
+        .log-list .time { color: var(--fg-dim); }
+        .log-list .msg { color: var(--fg-muted); }
+        .log-list .highlight { color: var(--fg-white); }
+
+        .info-popup {
+            position: absolute;
+            bottom: calc(100% + 15px);
+            left: -10%;
+            width: 120%;
+            background: rgba(10,10,10,0.95);
+            border: 1px solid var(--border-color);
+            padding: var(--spacing-md) var(--spacing-md) var(--spacing-lg) var(--spacing-md);
+            transform-origin: bottom;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 500px;
+            overflow-y: auto;
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            z-index: -1;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+            border-radius: 4px;
+        }
+
+        .info-popup.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+            z-index: 30;
+        }
+
+        .info-popup::-webkit-scrollbar { width: 4px; }
+        .info-popup::-webkit-scrollbar-thumb { background: var(--fg-dim); }
+
+        .popup-content {
+            font-size: var(--text-small);
+            color: var(--fg-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-family: var(--font-mono);
+        }
+        .popup-content .highlight { color: var(--fg-white); }
+        .popup-close {
+            position: absolute;
+            bottom: 4px;
+            right: 8px;
+            cursor: pointer;
+            color: var(--fg-dim);
+            font-size: var(--text-micro);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .popup-close:hover { color: var(--fg-white); }
+
+    </style>
+</head>
+<body vid="10">
+
+    
+    <aside id="telemetry-panel" vid="11">
+        <div vid="12">
+            
+            <div class="logo-container" vid="13">
+                <svg class="logo-svg" viewBox="0 0 100 100">
+                    <path d="M 20,90 L 20,45 C 20,15 80,15 80,45 L 80,90 L 70,80 L 60,90 L 50,80 L 40,90 L 30,80 Z" stroke-linejoin="round"></path>
+                    <circle cx="35" cy="45" r="5" fill="var(--fg-white)" stroke="none"></circle>
+                    <circle cx="65" cy="45" r="5" fill="var(--fg-white)" stroke="none"></circle>
+                </svg>
+            </div>
+            <div class="mono-micro" style="margin-bottom: 4px;" vid="17">OSINT INTELLIGENCE PLATFORM</div>
+            <div class="mono-value" style="font-weight: 700;" vid="18">NORRY GHOSTY</div>
+        </div>
+
+        <div class="module active" vid="19">
+            <div class="module-header" vid="20">
+                <span class="mono-micro" vid="21">01 // NEURAL SYNC</span>
+                <span class="mono-micro blink" vid="22">ACTIVE</span>
+            </div>
+            <div class="sans-display" id="sync-val" vid="23">99.8%</div>
+            <div class="matrix-bar" id="sync-matrix" vid="24">██████████████░░</div>
+            <div class="data-row" style="margin-top: 8px;" vid="25">
+                <span class="label" vid="26">LATENCY</span>
+                <span class="val" vid="27">0.004ms</span>
+            </div>
+            <div class="data-row" vid="28">
+                <span class="label" vid="29">PACKET LOSS</span>
+                <span class="val" vid="30">0.000%</span>
+            </div>
+        </div>
+
+        <div class="module" vid="31">
+            <div class="module-header" vid="32">
+                <span class="mono-micro" vid="33">02 // APPENDAGE KINEMATICS</span>
+                <span class="mono-micro" vid="34">TRACKING</span>
+            </div>
+            <div class="data-grid" vid="35">
+                <div vid="36">
+                    <div class="mono-micro" vid="37">TENSION</div>
+                    <div class="mono-value" id="tension-val" vid="38">842 N</div>
+                </div>
+                <div vid="39">
+                    <div class="mono-micro" vid="40">FLUID PRES.</div>
+                    <div class="mono-value" vid="41">12.4 MPa</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 16px;" vid="42">
+                <div class="mono-micro" style="margin-bottom: 8px;" vid="43">NODE TELEMETRY (REALTIME)</div>
+                <ul class="log-list" id="node-telemetry" vid="44">
+                    
+                </ul>
+            </div>
+        </div>
+
+        <div class="module" vid="45">
+            <div class="module-header" vid="46">
+                <span class="mono-micro" vid="47">03 // POWER ROUTING</span>
+                <span class="mono-micro" vid="48">NOMINAL</span>
+            </div>
+            <div class="data-row" vid="49">
+                <span class="label" vid="50">CORE DRAW</span>
+                <span class="val" vid="51">4,200 MW</span>
+            </div>
+            <div class="data-row" vid="52">
+                <span class="label" vid="53">THERMAL DISSIPATION</span>
+                <span class="val" vid="54">OPTIMAL</span>
+            </div>
+            <div class="matrix-bar" style="margin-top: 8px;" vid="55">░░██████░░░░░░░░</div>
+            <div class="matrix-bar" vid="56">░░░░████████░░░░</div>
+            <div class="matrix-bar" vid="57">░░░░░░░░████████</div>
+        </div>
+        
+        <div style="flex-grow: 1;" vid="58"></div>
+        
+        <div class="mono-micro" style="opacity: 0.5;">
+            AUTHORIZED PERSONNEL ONLY<br>
+            OVERRIDE PROTOCOL: OMEGA-7<br><br>
+            <span style="color: var(--fg-white); opacity: 0.8;">BUILT BY NORRIS FRANK</span>
+        </div>
+    </aside>
+
+    
+    <main id="arena" vid="61">
+        <canvas id="webgl-canvas" vid="62"></canvas>
+        
+        
+        <div class="arena-overlay corner-marks" vid="63">
+            <div class="corner tl" vid="64"></div>
+            <div class="corner tr" vid="65"></div>
+            <div class="corner bl" vid="66"></div>
+            <div class="corner br" vid="67"></div>
+        </div>
+
+        <div class="arena-overlay crosshair-center" vid="68"></div>
+
+        <div class="arena-overlay sys-status" vid="69">
+            <div class="mono-micro" vid="70">TARGET ACQUISITION: <span class="fg-white blink" id="target-status" vid="71">MANUAL</span></div>
+            <div class="mono-micro" style="color: var(--fg-dim);" vid="72">|</div>
+            <div class="mono-micro" vid="73">MODE: <span class="fg-white" vid="74">FLUID_DYNAMICS</span></div>
+        </div>
+
+        <div class="arena-overlay target-coords" vid="75">
+            <div class="mono-micro" vid="76">CURSOR/TARGET VECTOR</div>
+            <div class="mono-value" id="cursor-coords" style="font-size: 18px; margin-top: 4px;" vid="77">[ 0.000, 0.000 ]</div>
+            <div class="mono-micro" style="margin-top: 4px; color: var(--fg-dim);" id="hex-stream" vid="78">0x00000000</div>
+        </div>
+
+        <div class="arena-overlay search-panel" style="pointer-events: auto; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; justify-content: space-between; gap: 16px; width: 95%; max-width: 1400px; padding: 16px 24px; background: rgba(0,0,0,0.7); border: 1px solid var(--border-color); backdrop-filter: blur(8px); z-index: 20; border-radius: 6px;">
+          <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 120px; max-width: 24%; position: relative;">
+            <div id="popup-ip" class="info-popup"><div class="popup-close" onclick="closePopup('ip')">[ CLOSE ]</div><div class="popup-content" id="content-ip"></div></div>
+            <span class="mono-micro">01 // IP TRACKER</span>
+            <div style="display: flex; gap: 4px;">
+              <input id="ip-input" type="text" placeholder="Enter IP address..." style="flex-grow: 1; background: var(--bg-base); border: 1px solid var(--border-color); color: var(--fg-white); padding: 8px 12px; font-family: var(--font-mono); font-size: var(--text-small); outline: none;">
+              <button onclick="trackIP()" style="background: var(--bg-base); border: 1px solid var(--border-color); color: var(--fg-white); padding: 8px 12px; font-family: var(--font-mono); font-size: var(--text-small); cursor: pointer;">GO</button>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 120px; max-width: 24%; position: relative;">
+            <div id="popup-myip" class="info-popup"><div class="popup-close" onclick="closePopup('myip')">[ CLOSE ]</div><div class="popup-content" id="content-myip"></div></div>
+            <span class="mono-micro">02 // MY IP REVEAL</span>
+            <button onclick="myIP()" style="background: var(--bg-base); border: 1px solid var(--border-color); color: var(--fg-white); padding: 8px 12px; font-family: var(--font-mono); font-size: var(--text-small); cursor: pointer; text-align: left;">Execute Lookup</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 120px; max-width: 24%; position: relative;">
+            <div id="popup-phone" class="info-popup"><div class="popup-close" onclick="closePopup('phone')">[ CLOSE ]</div><div class="popup-content" id="content-phone"></div></div>
+            <span class="mono-micro">03 // PHONE TRACKER</span>
+            <div style="display: flex; gap: 4px;">
+              <input id="phone-input" type="text" placeholder="Enter phone..." style="flex-grow: 1; background: var(--bg-base); border: 1px solid var(--border-color); color: var(--fg-white); padding: 8px 12px; font-family: var(--font-mono); font-size: var(--text-small); outline: none;">
+              <button onclick="trackPhone()" style="background: var(--bg-base); border: 1px solid var(--border-color); color: var(--fg-white); padding: 8px 12px; font-family: var(--font-mono); font-size: var(--text-small); cursor: pointer;">GO</button>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 120px; max-width: 24%; position: relative;">
+            <div id="popup-user" class="info-popup"><div class="popup-close" onclick="closePopup('user')">[ CLOSE ]</div><div class="popup-content" id="content-user"></div></div>
+            <span class="mono-micro">04 // USERNAME OSINT</span>
+            <div style="display: flex; gap: 4px;">
+                <input id="username-input" type="text" placeholder="Enter username..." style="flex-grow: 1; background: var(--bg-base); border: 1px solid var(--border-color); color: var(--fg-white); padding: 8px 12px; font-family: var(--font-mono); font-size: var(--text-small); outline: none;">
+                <button onclick="trackUsername()" style="background: var(--bg-base); border: 1px solid var(--border-color); color: var(--fg-white); padding: 8px 12px; font-family: var(--font-mono); font-size: var(--text-small); cursor: pointer;">GO</button>
+            </div>
+          </div>
+        </div>
+    </main>
+
+    <script vid="92">
+        
+
+        const canvas = document.getElementById('webgl-canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        
+        const arena = document.getElementById('arena');
+        renderer.setSize(arena.clientWidth, arena.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const scene = new THREE.Scene();
+        
+        scene.fog = new THREE.FogExp2(0x000000, 0.001);
+
+        const camera = new THREE.PerspectiveCamera(45, arena.clientWidth / arena.clientHeight, 1, 2000);
+        camera.position.z = 600;
+
+        
+        const pointer = new THREE.Vector2(0, 0);
+        const target3D = new THREE.Vector3(0, 0, 0);
+        const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+        const raycaster = new THREE.Raycaster();
+
+        
+        arena.addEventListener('mousemove', (e) => {
+            const rect = arena.getBoundingClientRect();
+            
+            pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+            
+            raycaster.setFromCamera(pointer, camera);
+            raycaster.ray.intersectPlane(plane, target3D);
+            
+            
+            document.getElementById('cursor-coords').innerText = `[ ${target3D.x.toFixed(3)}, ${target3D.y.toFixed(3)} ]`;
+        });
+
+        
+        class TechTentacle {
+            constructor(numSegments, length, baseOffset, index) {
+                this.numSegments = numSegments;
+                this.segmentLength = length / numSegments;
+                this.baseOffset = baseOffset; 
+                this.index = index;
+                
+                this.points = [];
+                for (let i = 0; i < numSegments; i++) {
+                    this.points.push(new THREE.Vector3(this.baseOffset.x, this.baseOffset.y, this.baseOffset.z - i * this.segmentLength));
+                }
+
+                
+                const coreGeo = new THREE.BufferGeometry().setFromPoints(this.points);
+                const coreMat = new THREE.LineBasicMaterial({ 
+                    color: 0x333333, 
+                    linewidth: 1, 
+                    transparent: true,
+                    opacity: 0.5
+                });
+                this.coreLine = new THREE.Line(coreGeo, coreMat);
+                scene.add(this.coreLine);
+
+                
+                this.sheathLines = [];
+                for(let i=0; i<3; i++) {
+                    const sheathGeo = new THREE.BufferGeometry().setFromPoints(this.points);
+                    const sheathMat = new THREE.LineBasicMaterial({
+                        color: 0xffffff,
+                        transparent: true,
+                        opacity: i === 0 ? 0.8 : 0.3
+                    });
+                    const sheath = new THREE.Line(sheathGeo, sheathMat);
+                    this.sheathLines.push(sheath);
+                    scene.add(sheath);
+                }
+
+                
+                const nodeGeo = new THREE.OctahedronGeometry(2, 0);
+                const nodeMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+                this.nodes = new THREE.InstancedMesh(nodeGeo, nodeMat, numSegments);
+                
+                for(let i=0; i<numSegments; i++) {
+                    let dummy = new THREE.Object3D();
+                    dummy.position.copy(this.points[i]);
+                    dummy.updateMatrix();
+                    this.nodes.setMatrixAt(i, dummy.matrix);
+                }
+                scene.add(this.nodes);
+                
+                
+                this.speed = 0.1 + Math.random() * 0.05;
+                this.drag = 0.6 + Math.random() * 0.2;
+                this.wanderOffset = Math.random() * Math.PI * 2;
+            }
+
+            update(target, time) {
+                
+                const wanderX = Math.sin(time * 0.002 + this.wanderOffset) * 50;
+                const wanderY = Math.cos(time * 0.0015 + this.wanderOffset) * 50;
+                
+                
+                const targetX = target.x + wanderX + this.baseOffset.x * 0.5;
+                const targetY = target.y + wanderY + this.baseOffset.y * 0.5;
+                const targetZ = target.z; 
+
+                this.points[0].x += (targetX - this.points[0].x) * this.speed;
+                this.points[0].y += (targetY - this.points[0].y) * this.speed;
+                this.points[0].z += (targetZ - this.points[0].z) * this.speed;
+
+                
+                for (let i = 1; i < this.numSegments; i++) {
+                    const current = this.points[i];
+                    const prev = this.points[i - 1];
+
+                    
+                    const dx = prev.x - current.x;
+                    const dy = prev.y - current.y;
+                    const dz = prev.z - current.z;
+                    
+                    const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                    
+                    
+                    if (distance > this.segmentLength) {
+                        const ratio = this.segmentLength / distance;
+                        const targetPosX = prev.x - dx * ratio;
+                        const targetPosY = prev.y - dy * ratio;
+                        const targetPosZ = prev.z - dz * ratio;
+
+                        current.x += (targetPosX - current.x) * this.drag;
+                        current.y += (targetPosY - current.y) * this.drag;
+                        current.z += (targetPosZ - current.z) * this.drag;
+                    }
+                }
+
+                
+                this.coreLine.geometry.setFromPoints(this.points);
+                
+                
+                this.sheathLines.forEach((sheath, sIdx) => {
+                    const offsetPoints = this.points.map((p, pIdx) => {
+                        if (pIdx === 0) return p; 
+                        const offsetAmount = Math.sin(time * 0.005 + pIdx * 0.2 + sIdx * 10) * 3;
+                        
+                        const prev = this.points[pIdx-1];
+                        const angle = Math.atan2(p.y - prev.y, p.x - prev.x);
+                        return new THREE.Vector3(
+                            p.x + Math.sin(angle) * offsetAmount * (sIdx===0?0:1), 
+                            p.y - Math.cos(angle) * offsetAmount * (sIdx===0?0:1), 
+                            p.z
+                        );
+                    });
+                    sheath.geometry.setFromPoints(offsetPoints);
+                });
+
+                
+                let dummy = new THREE.Object3D();
+                for (let i = 0; i < this.numSegments; i++) {
+                    dummy.position.copy(this.points[i]);
+                    
+                    if (i < this.numSegments - 1) {
+                        dummy.lookAt(this.points[i+1]);
+                    }
+                    
+                    const scale = 1 - (i / this.numSegments) * 0.8;
+                    dummy.scale.set(scale, scale, scale);
+                    
+                    
+                    dummy.rotateZ(time * 0.002);
+                    dummy.updateMatrix();
+                    this.nodes.setMatrixAt(i, dummy.matrix);
+                }
+                this.nodes.instanceMatrix.needsUpdate = true;
+            }
+        }
+
+        
+        const tentacles = [];
+        const NUM_TENTACLES = 8;
+        const SEGMENTS = 40;
+        const LENGTH = 600;
+
+        
+        const coreGeo = new THREE.IcosahedronGeometry(20, 1);
+        const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+        const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+        scene.add(coreMesh);
+
+        for (let i = 0; i < NUM_TENTACLES; i++) {
+            const angle = (i / NUM_TENTACLES) * Math.PI * 2;
+            const radius = 40; 
+            const baseOffset = new THREE.Vector3(
+                Math.cos(angle) * radius,
+                Math.sin(angle) * radius,
+                0 
+            );
+            tentacles.push(new TechTentacle(SEGMENTS, LENGTH, baseOffset, i));
+        }
+
+        
+        const telemetryList = document.getElementById('node-telemetry');
+        const syncVal = document.getElementById('sync-val');
+        const hexStream = document.getElementById('hex-stream');
+        const tensionVal = document.getElementById('tension-val');
+
+        function updateUI(time) {
+            
+            const chars = ['█', '░', '|', '-'];
+            let str = '';
+            for(let i=0; i<16; i++) {
+                str += (Math.random() > 0.3) ? '█' : (Math.random() > 0.5 ? '░' : '|');
+            }
+            document.getElementById('sync-matrix').innerText = str;
+
+            
+            const sync = (99.0 + Math.random() * 0.9).toFixed(2);
+            syncVal.innerText = `${sync}%`;
+
+            
+            if (Math.random() > 0.8) {
+                hexStream.innerText = '0x' + Math.floor(Math.random()*16777215).toString(16).toUpperCase().padStart(8, '0');
+            }
+
+            
+            const dist = Math.sqrt(target3D.x*target3D.x + target3D.y*target3D.y);
+            const tension = Math.floor(400 + dist * 1.5 + Math.random() * 50);
+            tensionVal.innerText = `${tension} N`;
+
+            
+            if (time % 10 === 0) { 
+                const nodeIdx = Math.floor(Math.random() * NUM_TENTACLES);
+                const segIdx = Math.floor(Math.random() * SEGMENTS);
+                const pos = tentacles[nodeIdx].points[segIdx];
+                
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span class="time">[${new Date().toISOString().slice(14, 21)}]</span>
+                    <span class="msg">APP_0${nodeIdx}::SEG_${segIdx.toString().padStart(2, '0')}</span>
+                    <span class="highlight">X:${pos.x.toFixed(0)} Y:${pos.y.toFixed(0)}</span>
+                `;
+                telemetryList.prepend(li);
+                if (telemetryList.children.length > 5) {
+                    telemetryList.removeChild(telemetryList.lastChild);
+                }
+            }
+        }
+
+        
+        let lastTime = 0;
+        function animate(time) {
+            requestAnimationFrame(animate);
+
+            
+            coreMesh.rotation.x = time * 0.0005;
+            coreMesh.rotation.y = time * 0.001;
+
+            
+            
+            
+            
+            const pulseTarget = new THREE.Vector3(
+                target3D.x + Math.sin(time * 0.001) * 20,
+                target3D.y + Math.cos(time * 0.0013) * 20,
+                target3D.z
+            );
+
+            tentacles.forEach(t => t.update(pulseTarget, time));
+
+            updateUI(Math.floor(time));
+
+            renderer.render(scene, camera);
+        }
+
+        animate(0);
+
+        
+        window.addEventListener('resize', () => {
+            const width = arena.clientWidth;
+            const height = arena.clientHeight;
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+        });
+
+        function logToTelemetry(msg, dataStr) {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span class="time">[${new Date().toISOString().slice(14, 21)}]</span>
+                <span class="msg">${msg}</span>
+                <span class="highlight">${dataStr}</span>
+            `;
+            telemetryList.prepend(li);
+            if (telemetryList.children.length > 10) {
+                telemetryList.removeChild(telemetryList.lastChild);
+            }
+        }
+
+        function closePopup(id) {
+            document.getElementById('popup-' + id).classList.remove('active');
+        }
+
+        function showPopup(id, obj) {
+            const content = document.getElementById('content-' + id);
+            let html = '';
+            
+            function renderObj(o, depth) {
+                for (let k in o) {
+                    if (typeof o[k] === 'object' && o[k] !== null) {
+                        html += `<div style="margin-top: 4px; border-left: 1px solid var(--border-color); padding-left: 8px; margin-left: ${depth*4}px;">
+                                    <span style="color:var(--fg-white); font-size: 10px;">[ ${k.toUpperCase()} ]</span>`;
+                        renderObj(o[k], depth + 1);
+                        html += `</div>`;
+                    } else {
+                        html += `<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-left: ${depth*4}px;">
+                                   <span style="color:var(--fg-muted);">${k}</span>
+                                   <span class="highlight" style="text-align:right; max-width:65%; word-wrap:break-word;">${o[k]}</span>
+                                 </div>`;
+                    }
+                }
+            }
+
+            if (obj.error) {
+                html = `<div style="color: #ff4444;">[ ERROR ]<br/>${obj.error}</div>`;
+            } else {
+                renderObj(obj, 0);
+            }
+
+            content.innerHTML = html;
+            document.getElementById('popup-' + id).classList.add('active');
+        }
+
+        async function trackIP() {
+            const ip = document.getElementById('ip-input').value;
+            if (!ip) return;
+            logToTelemetry("IP_TRACK:INIT", ip);
+            try {
+                const res = await fetch('/api/ip', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ip})
+                });
+                const data = await res.json();
+                showPopup('ip', data);
+                if(!data.error) logToTelemetry("IP_TRACK:DONE", "OK");
+                else logToTelemetry("IP_TRACK:ERR", data.error);
+            } catch (e) { logToTelemetry("IP_TRACK:FAIL", e.message); showPopup('ip', {error: e.message}); }
+        }
+
+        async function myIP() {
+            logToTelemetry("MY_IP:INIT", "Executing");
+            try {
+                const res = await fetch('/api/myip', { method: 'POST' });
+                const data = await res.json();
+                showPopup('myip', data);
+                if(!data.error) logToTelemetry("MY_IP:DONE", "OK");
+                else logToTelemetry("MY_IP:ERR", data.error);
+            } catch (e) { logToTelemetry("MY_IP:FAIL", e.message); showPopup('myip', {error: e.message}); }
+        }
+
+        async function trackPhone() {
+            const phone = document.getElementById('phone-input').value;
+            if (!phone) return;
+            logToTelemetry("PHONE:INIT", phone);
+            try {
+                const res = await fetch('/api/phone', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({phone})
+                });
+                const data = await res.json();
+                showPopup('phone', data);
+                if(!data.error) logToTelemetry("PHONE:DONE", "OK");
+                else logToTelemetry("PHONE:ERR", data.error);
+            } catch (e) { logToTelemetry("PHONE:FAIL", e.message); showPopup('phone', {error: e.message}); }
+        }
+
+        async function trackUsername() {
+            const username = document.getElementById('username-input').value;
+            if (!username) return;
+            logToTelemetry("USER:INIT", username);
+            showPopup('user', {"Status": "Initializing, Please Wait..."});
+            try {
+                const res = await fetch('/api/username', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username})
+                });
+                const data = await res.json();
+                showPopup('user', data.results || data);
+                if(!data.error) logToTelemetry("USER:DONE", "OK");
+                else logToTelemetry("USER:ERR", data.error);
+            } catch (e) { logToTelemetry("USER:FAIL", e.message); showPopup('user', {error: e.message}); }
+        }
+
+    </script>
+
+</body></html>
