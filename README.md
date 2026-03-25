@@ -1,38 +1,56 @@
-# GhostTrack
-**Norry Ghosty // OSINT Intelligence**
+# 👻 Norry Ghosty // OSINT Intelligence Platform
 
-Useful tool to track location or mobile number, username on social media and also IP information gathering.
+**Live Deployment:** [https://norry-ghosty-2-0.onrender.com](https://norry-ghosty-2-0.onrender.com)
 
-Built by **Norris Frank**.
+**Norry Ghosty** is a sophisticated, web-based Open-Source Intelligence (OSINT) gathering platform designed for rapid digital footprint analysis. Featuring a dynamic neural-sync telemetry interface, this platform acts as a centralized dashboard for tracking IP addresses, discovering phone number metadata, and executing real-time social media username reconnaissance.
 
-## Installation
+Built and engineered by **Norris Frank**.
+
+---
+
+## ⚡ Core Capabilities
+
+- **IP Intelligence Profiling**: Perform deep lookups on any IP address to extract precise geolocation, ISP data, and network origin details.
+- **Identity Exposure & Reveal**: Instantly parse and display the client's localized public IP address.
+- **Telecommunication Parsing**: Reverse-analyze phone numbers across standard international regions to deduce carrier operators, geographic regions, and line validation matrices.
+- **Cross-Platform Username Discovery**: Search over 20+ major social networks (including Twitter, Instagram, GitHub, LinkedIn, and more) to detect active username footprints and generate direct pathway links.
+
+---
+
+## 🚀 Deployment & Usage
+
+### Web Interface (Live)
+Access the live intelligence dashboard directly without any installation:
+👉 **[Launch Norry Ghosty](https://norry-ghosty-2-0.onrender.com)**
+
+### Local Installation
+To deploy the platform locally within your own isolated environment:
 
 ```bash
-git clone https://github.com/NorrisFrank/GhostTrack.git
-cd GhostTrack
-pip install Flask requests phonenumbers
+# Clone the repository
+git clone https://github.com/norrisfrank/Norry-Ghosty-2.0.git
+cd Norry-Ghosty-2.0
+
+# Install required dependencies
+pip install -r requirements.txt
+
+# Boot the telemetry server
+python app.py
 ```
+*Navigate to `http://localhost:5000` via your preferred web browser to access the graphical interface.*
 
-## Usage
-
-You can run the interactive CLI tool:
+### Headless CLI Mode
+For terminal-exclusive environments, a streamlined command-line interface is natively supported:
 ```bash
 python GhostTR.py
 ```
 
-Or you can use the Norry Ghosty visual web interface:
-```bash
-python app.py
-```
-Then navigate to `http://localhost:5000` in your web browser.
+---
 
-## Features
-- **IP Tracker**: Get detailed information about an IP address.
-- **Show Your IP**: Reveal your own public IP address.
-- **Phone Tracker**: Gather information about a phone number including carrier and region.
-- **Username OSINT**: Search for a username across multiple social media platforms.
+## ⚠️ Disclaimer
+**Norry Ghosty** is developed strictly for educational purposes, ethical tracking, and authorized OSINT investigations. The developer assumes no liability and is not responsible for any misuse or damage caused by this program.
 
-<details>
-<summary>:zap: Author :</summary>
-- <strong>Norris Frank</strong>
-</details>
+---
+<p align="center">
+  <i>"Authorized Personnel Only. Override Protocol: OMEGA-7"</i>
+</p>
